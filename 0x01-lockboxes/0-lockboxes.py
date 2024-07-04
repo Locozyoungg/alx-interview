@@ -1,26 +1,18 @@
 #!/usr/bin/python3
+"""`canUnlockAll` module
+"""
+
 
 def canUnlockAll(boxes):
+    """A method that determines if all `boxes` can be opened
+        @boxes: A list of list of positive ints
+        rtype: `True` if all boxes can be opened, else `False`
     """
-    Determine if all boxes can be opened.
-
-    Args:
-    boxes (list of lists): A list where each index contains a list of keys.
-
-    Returns:
-    bool: True if all boxes can be opened, else False.
-    """
-    n = len(boxes)
-    opened = set()
-    stack = [0]
-    
-    while stack:
-        current_box = stack.pop()
-        if current_box not in opened:
-            opened.add(current_box)
-            for key in boxes[current_box]:
-                if key < n:
-                    stack.append(key)
-    
-    return len(opened) == n
-
+    if not boxes or type(boxes) is not list:
+        return False
+    unlocked_boxes = [0]
+    for i in unlocked_boxes:
+        for key in boxes[i]:
+            if key not in unlocked_boxes and key < len(boxes):
+                unlocked_boxes.append(key)
+    return len(unlocked_boxes) == len(boxes)
