@@ -1,48 +1,54 @@
-#!/usr/bin/python3
+
+#!/usr/bin/env python3
 """
-Log parsing script that reads from stdin and computes metrics.
+Reads stdin line by line and computes metrics.
 """
 
 import sys
+import signal
 
-def print_stats(total_size, status_codes):
-    """
-    Print the accumulated metrics.
-    """
+# Dictionary to store count of status codes
+status_codes = {200: 0, 301: 0, 400: 0, 401: 0, 403: 0, 404: 0, 405: 0, 500: 0}
+total_size = 0
+line_count = 0
+
+def print_stats():
+    """Prints the accumulated metrics."""
     print(f"File size: {total_size}")
-    for code in sorted(status_codes):
+    for code in sorted(status_codes.keys()):
         if status_codes[code] > 0:
             print(f"{code}: {status_codes[code]}")
 
-if __name__ == "__main__":
-    total_size = 0
-    status_codes = {200: 0, 301: 0, 400: 0, 401: 0, 403: 0, 404: 0, 405: 0, 500: 0}
-    line_count = 0
+def signal_handler(sig, frame):
+    """Handles the keyboard interruption signal (CTRL + C)."""
+    print_stats()
+    sys.exit(0)
 
-    try:
-        for line in sys.stdin:
-            try:
-                parts = line.split()
-                if len(parts) != 9:
-                    continue
+# Register the signal handler
+signal.signal(signal.SIGINT, signal_handler)
 
-                file_size = int(parts[-1])
-                status_code = int(parts[-2])
+try:
+    for line in sys.stdin:
+        line_count += 1
 
-                total_size += file_size
-                if status_code in status_codes:
-                    status_codes[status_code] += 1
+        parts = line.split()
+        if len(parts) < 7:
+            continue
 
-                line_count += 1
+        # Extract status code and file size
+        try:
+            status_code = int(parts[-2])
+            file_size = int(parts[-1])
+            if status_code in status_codes:
+                status_codes[status_code] += 1
+            total_size += file_size
+        except ValueError:
+            continue
 
-                if line_count % 10 == 0:
-                    print_stats(total_size, status_codes)
+        # Print stats every 10 lines
+        if line_count % 10 == 0:
+            print_stats()
 
-            except Exception:
-                continue
-
-    except KeyboardInterrupt:
-        print_stats(total_size, status_codes)
-        raise
-
-    print_stats(total_size, status_codes)
+except KeyboardInterrupt:
+    print_stats()
+    sys.exit(0)
