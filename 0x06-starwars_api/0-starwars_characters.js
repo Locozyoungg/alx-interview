@@ -1,38 +1,40 @@
-
 #!/usr/bin/node
-const argv = process.argv;
-const urlFilm = 'https://swapi-api.hbtn.io/api/films/';
-const urlMovie = `${urlFilm}${argv[2]}/`;
-
 const request = require('request');
 
-request(urlMovie, function (error, response, body) {
-  if (error == null) {
-    const fbody = JSON.parse(body);
-    const characters = fbody.characters;
+// Get the Movie ID from the command line arguments
+const movieId = process.argv[2];
 
-    if (characters && characters.length > 0) {
-      const limit = characters.length;
-      CharRequest(0, characters[0], characters, limit);
-    }
+// Construct the URL to fetch the movie data from the Star Wars API
+const url = `https://swapi-api.hbtn.io/api/films/${movieId}/`;
+
+// Make the HTTP GET request to the Star Wars API
+request(url, function (error, response, body) {
+  if (error) {
+    // Log the error if the request fails
+    console.error('Error:', error);
+  } else if (response.statusCode !== 200) {
+    // Log the status code if the request is not successful
+    console.error('Failed to get data. Status code:', response.statusCode);
   } else {
-    console.log(error);
+    // Parse the JSON response to get the movie data
+    const data = JSON.parse(body);
+    const characters = data.characters;
+
+    // Iterate over the list of characters and make a request for each one
+    characters.forEach(characterUrl => {
+      request(characterUrl, function (charError, charResponse, charBody) {
+        if (charError) {
+          // Log the error if the request fails
+          console.error('Error:', charError);
+        } else if (charResponse.statusCode !== 200) {
+          // Log the status code if the request is not successful
+          console.error('Failed to get character data. Status code:', charResponse.statusCode);
+        } else {
+          // Parse the character data and print the character's name
+          const characterData = JSON.parse(charBody);
+          console.log(characterData.name);
+        }
+      });
+    });
   }
 });
-
-function CharRequest (idx, url, characters, limit) {
-  if (idx === limit) {
-    return;
-  }
-  request(url, function (error, response, body) {
-    if (!error) {
-      const rbody = JSON.parse(body);
-      console.log(rbody.name);
-      idx++;
-      CharRequest(idx, characters[idx], characters, limit);
-    } else {
-      console.error('error:', error);
-    }
-  });
-}
-  
