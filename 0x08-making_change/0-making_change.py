@@ -1,32 +1,24 @@
+
 #!/usr/bin/python3
 """
-This module provides a function to determine the fewest number of coins
-needed to meet a given amount total.
+Main file for testing
 """
 
-def makeChange(coins, total):
+
+def makeChange(coins, amount):
     """
-    Determines the fewest number of coins needed to meet the given total.
-    
-    Args:
-        coins (list): A list of the values of the coins in your possession.
-        total (int): The total amount for which you need to find the minimum number of coins.
-    
-    Returns:
-        int: The fewest number of coins needed to meet the total. If the total
-             cannot be met by any combination of the coins, returns -1.
+    How many of this type of coin can I get with my money? Okay,
+        I'll take that many. Now, how much money do I have left?
+        And how many coins do I have in my pocket?
     """
-    if total <= 0:
+    if amount < 1:
         return 0
-
-    # Initialize dp array with infinity, and dp[0] = 0
-    dp = [float('inf')] * (total + 1)
-    dp[0] = 0
-
-    # Build up the dp array
+    coins.sort(reverse=True)
+    count = 0
     for coin in coins:
-        for i in range(coin, total + 1):
-            dp[i] = min(dp[i], dp[i - coin] + 1)
-
-    # If dp[total] is still infinity, return -1
-    return dp[total] if dp[total] != float('inf') else -1
+        if amount == 0:
+            break
+        num = amount // coin
+        amount -= num * coin
+        count += num
+    return count if amount == 0 else -1
